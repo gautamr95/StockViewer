@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Stock Viewer</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="search">Search</string>
+    <string name="stock_search">Look up today\'s price</string>
+    <string name="stock">Stock:</string>
+</resources>
