@@ -6,4 +6,6 @@
     <string name="search">Search</string>
     <string name="stock_search">Look up today\'s price</string>
     <string name="stock">Stock:</string>
+    <string name="date">Date:</string>
+    <string name="price">Price:</string>
 </resources>

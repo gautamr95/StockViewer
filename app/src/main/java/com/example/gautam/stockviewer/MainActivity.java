@@ -6,7 +6,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
     final String LOG_TAG = this.getClass().getSimpleName();
 
     private Button mBtn;
@@ -96,14 +96,14 @@ public class MainActivity extends ActionBarActivity {
 
         final String LOG_TAG = this.getClass().getSimpleName();
 
-        String date;
-        double price;
+        String date = null;
+        Double price = null;
 
         @Override
         protected String doInBackground(String... params) {
-            HttpURLConnection urlConnection = null;
+            HttpURLConnection urlConnection;
             String input = params[0];
-            InputStream inputStream = null;
+            InputStream inputStream;
             String stockString = null;
             try {
                 Uri builtUri = Uri.parse(baseUrl).buildUpon().appendPath(input + ".json").appendQueryParameter(ID_PARAM, APP_ID)
@@ -140,8 +140,10 @@ public class MainActivity extends ActionBarActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            mDateTView.setText(date);
-            mOutputTView.setText(Double.toString(price));
+            if (date != null)
+                mDateTView.setText(date);
+            if (price != null)
+                mOutputTView.setText(Double.toString(price));
         }
 
         private void getTodaysPrice(String stockJsonStr) {
