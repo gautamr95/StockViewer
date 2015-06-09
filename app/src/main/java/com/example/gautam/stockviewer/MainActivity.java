@@ -127,13 +127,13 @@ public class MainActivity extends ActionBarActivity {
                     return null;
                 }
                 stockString = buffer.toString();
+                getTodaysPrice(stockString);
                 Log.v(LOG_TAG, stockString);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error no internet?");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            getTodaysPrice(stockString);
             return stockString;
         }
 
