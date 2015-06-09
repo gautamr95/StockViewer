@@ -23,7 +23,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="@string/stock_search" />
+            android:hint="@string/stock_search"
+            android:inputType="textCapCharacters" />
 
         <Button
             android:id="@+id/search_btn"
@@ -32,11 +33,24 @@
             android:text="@string/search" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/price_today"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="54sp"
-        android:textStyle="normal"/>
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/date_today"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="54sp"
+            android:textStyle="normal" />
+
+        <TextView
+            android:id="@+id/price_today"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="54sp"
+            android:textStyle="normal" />
+    </LinearLayout>
 </LinearLayout>
 
