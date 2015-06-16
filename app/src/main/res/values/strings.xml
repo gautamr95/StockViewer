@@ -1,11 +1,12 @@
 <resources>
     <string name="app_name">Stock Viewer</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="search">Search</string>
-    <string name="stock_search">Look up today\'s price</string>
+    <string name="stock_search">Ticker</string>
     <string name="stock">Stock:</string>
     <string name="date">Date:</string>
-    <string name="price">Price:</string>
+    <string name="price">Todays Price:</string>
+    <string name="name">Name:</string>
+    <string name="number">Number of Days:</string>
 </resources>

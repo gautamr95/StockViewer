@@ -16,6 +16,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,8 +40,11 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mBtn;
     private EditText mInputEText;
+    private EditText mNumberEText;
     private TextView mOutputTView;
     private TextView mDateTView;
+    private TextView mNameTView;
+    private LineChart mChart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,19 +52,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mBtn = (Button) findViewById(R.id.search_btn);
         mInputEText = (EditText) findViewById(R.id.input);
+        mNameTView = (TextView) findViewById(R.id.name);
         mOutputTView = (TextView) findViewById(R.id.price_today);
         mDateTView = (TextView) findViewById(R.id.date_today);
+        mChart = (LineChart) findViewById(R.id.chart);
+        mNumberEText = (EditText) findViewById(R.id.number);
         mBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String input = mInputEText.getText().toString();
+                String number = mNumberEText.getText().toString();
                 ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
                 if (input.length() == 0) {
                     Toast toast = Toast.makeText(getApplicationContext(), "Please input a stock first", Toast.LENGTH_SHORT);
                     toast.show();
                 } else if (networkInfo != null && networkInfo.isConnected()) {
-                    new getStockInfo().execute(input);
+                    new getStockInfo().execute(input, number);
                 } else {
                     Toast toast = Toast.makeText(getApplicationContext(), "You are not connected to the Internet", Toast.LENGTH_SHORT);
                     toast.show();
@@ -91,18 +105,22 @@ public class MainActivity extends AppCompatActivity {
         final String ID_PARAM = "auth_token";
         final String rows = "rows";
         final String cols = "column";
-        final String numRow = "1";
+        String numRow = "1";
         final String numCol = "4";
 
         final String LOG_TAG = this.getClass().getSimpleName();
 
+        String name = null;
         String date = null;
         Double price = null;
+
+        LineData lineData = null;
 
         @Override
         protected String doInBackground(String... params) {
             HttpURLConnection urlConnection;
             String input = params[0];
+            numRow = params[1];
             InputStream inputStream;
             String stockString = null;
             try {
@@ -128,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 stockString = buffer.toString();
                 getTodaysPrice(stockString);
+                getDataRange(stockString);
                 Log.v(LOG_TAG, stockString);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error no internet?");
@@ -140,23 +159,55 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
+            if (name != null)
+                mNameTView.setText(name);
             if (date != null)
                 mDateTView.setText(date);
             if (price != null)
                 mOutputTView.setText(Double.toString(price));
+            if (lineData != null) {
+                mChart.setData(lineData);
+                mChart.invalidate(); // refresh
+            }
         }
 
         private void getTodaysPrice(String stockJsonStr) {
-            final String NAMES = "column_names";
+            final String COL_NAMES = "column_names";
             final String DATA = "data";
+            final String NAME = "name";
             try {
                 JSONObject stockJson = new JSONObject(stockJsonStr);
-                JSONArray names = stockJson.getJSONArray(NAMES);
+                JSONArray names = stockJson.getJSONArray(COL_NAMES);
                 JSONArray data = stockJson.getJSONArray(DATA).getJSONArray(0);
+                name = stockJson.getString(NAME);
+                name = name.substring(0, name.indexOf(")") + 1);
                 date = data.getString(0);
                 price = data.getDouble(1);
-                Log.v(LOG_TAG, date + Double.toString(price));
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "JSON Error!");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
+        private void getDataRange(String stockJsonStr) {
+            final String COL_NAMES = "column_names";
+            final String DATA = "data";
+            ArrayList<Entry> vals = new ArrayList<Entry>();
+            try {
+                JSONObject stockJson = new JSONObject(stockJsonStr);
+                JSONArray names = stockJson.getJSONArray(COL_NAMES);
+                JSONArray data = stockJson.getJSONArray(DATA);
+                ArrayList<String> xVals = new ArrayList<String>();
+                int len = data.length();
+                for (int i = data.length() - 1; i >= 0; i--) {
+                    JSONArray obj = data.getJSONArray(i);
+                    vals.add(new Entry((float) obj.getDouble(1), len - i));
+                    xVals.add(String.valueOf(len - i));
+                }
+                LineDataSet dataSet = new LineDataSet(vals, name);
+                dataSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+                lineData = new LineData(xVals, dataSet);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "JSON Error!");
             } catch (Exception e) {
