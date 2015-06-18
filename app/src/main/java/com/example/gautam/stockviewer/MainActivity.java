@@ -1,6 +1,7 @@
 package com.example.gautam.stockviewer;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -11,11 +12,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -57,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
         mDateTView = (TextView) findViewById(R.id.date_today);
         mChart = (LineChart) findViewById(R.id.chart);
         mNumberEText = (EditText) findViewById(R.id.number);
+
+        Paint p = mChart.getPaint(Chart.PAINT_INFO);
+        p.setColor(getResources().getColor(R.color.primary_dark_material_light));
+        InputMethodManager imm = (InputMethodManager) getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+
         mBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,14 +74,18 @@ public class MainActivity extends AppCompatActivity {
                 ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
                 if (input.length() == 0) {
-                    Toast toast = Toast.makeText(getApplicationContext(), "Please input a stock first", Toast.LENGTH_SHORT);
-                    toast.show();
+                    Toast.makeText(getApplicationContext(), "Please input a stock first", Toast.LENGTH_SHORT).show();
+                } else if (number.length() == 0) {
+                    Toast.makeText(getApplicationContext(), "Please input the number of days", Toast.LENGTH_SHORT).show();
                 } else if (networkInfo != null && networkInfo.isConnected()) {
                     new getStockInfo().execute(input, number);
                 } else {
-                    Toast toast = Toast.makeText(getApplicationContext(), "You are not connected to the Internet", Toast.LENGTH_SHORT);
-                    toast.show();
+                    Toast.makeText(getApplicationContext(), "You are not connected to the Internet", Toast.LENGTH_SHORT).show();
                 }
+                InputMethodManager imm = (InputMethodManager) getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(mInputEText.getWindowToken(), 0);
+                imm.hideSoftInputFromWindow(mNumberEText.getWindowToken(), 0);
             }
         });
     }
@@ -108,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         String numRow = "1";
         final String numCol = "4";
 
-        final String LOG_TAG = this.getClass().getSimpleName();
+//        final String LOG_TAG = this.getClass().getSimpleName();
 
         String name = null;
         String date = null;
@@ -147,9 +160,14 @@ public class MainActivity extends AppCompatActivity {
                 stockString = buffer.toString();
                 getTodaysPrice(stockString);
                 getDataRange(stockString);
-                Log.v(LOG_TAG, stockString);
+//                Log.v(LOG_TAG, stockString);
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Error no internet?");
+//                Log.e(LOG_TAG, "Bad site");
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), "Incorrect Ticker", Toast.LENGTH_LONG).show();
+                    }
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -167,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
                 mOutputTView.setText(Double.toString(price));
             if (lineData != null) {
                 mChart.setData(lineData);
+                mChart.setDescription("");
                 mChart.invalidate(); // refresh
             }
         }
@@ -200,13 +219,14 @@ public class MainActivity extends AppCompatActivity {
                 JSONArray data = stockJson.getJSONArray(DATA);
                 ArrayList<String> xVals = new ArrayList<String>();
                 int len = data.length();
-                for (int i = data.length() - 1; i >= 0; i--) {
+                for (int i = len - 1; i >= 0; i--) {
                     JSONArray obj = data.getJSONArray(i);
-                    vals.add(new Entry((float) obj.getDouble(1), len - i));
-                    xVals.add(String.valueOf(len - i));
+                    vals.add(new Entry((float) obj.getDouble(1), len - 1 - i));
+//                    xVals.add(String.valueOf(len - i));
+                    xVals.add(obj.getString(0));
                 }
                 LineDataSet dataSet = new LineDataSet(vals, name);
-                dataSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+                dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
                 lineData = new LineData(xVals, dataSet);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "JSON Error!");
