@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-        
+
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
@@ -83,7 +83,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void selectItem(int position) {
-        Fragment fragment = new StockViewFragment();
+        Fragment fragment;
+        switch (position) {
+            case 0:
+                fragment = new StockViewFragment();
+                break;
+            case 1:
+                fragment = new CustomDateFragment();
+                break;
+            default:
+                fragment = new StockViewFragment();
+        }
+
+
 //        Bundle args = new Bundle();
 //        args.putInt(PlanetFragment.ARG_PLANET_NUMBER, position);
 //        fragment.setArguments(args);
