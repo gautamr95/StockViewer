@@ -20,14 +20,6 @@ import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,7 +27,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -152,11 +143,6 @@ public class StockViewFragment extends Fragment {
 
 //        final String LOG_TAG = this.getClass().getSimpleName();
 
-        String name = null;
-        String date = null;
-        Double price = null;
-
-        LineData lineData = null;
 
         @Override
         protected String doInBackground(String... params) {
@@ -187,8 +173,8 @@ public class StockViewFragment extends Fragment {
                     return null;
                 }
                 stockString = buffer.toString();
-                getTodaysPrice(stockString);
-                getDataRange(stockString);
+                Utility.getTodaysPrice(stockString);
+                Utility.getDataRange(stockString);
 //                Log.v(LOG_TAG, stockString);
             } catch (IOException e) {
 //                Log.e(LOG_TAG, "Bad site");
@@ -206,63 +192,20 @@ public class StockViewFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if (name != null)
-                mNameTView.setText(name);
-            if (date != null)
-                mDateTView.setText(date);
-            if (price != null)
-                mOutputTView.setText(Double.toString(price));
-            if (lineData != null) {
-                mChart.setData(lineData);
+            if (Utility.getName() != null)
+                mNameTView.setText(Utility.getName());
+            if (Utility.getDate() != null)
+                mDateTView.setText(Utility.getDate());
+            if (Utility.getPrice() != null)
+                mOutputTView.setText(Double.toString(Utility.getPrice()));
+            if (Utility.getLineData() != null) {
+                mChart.setData(Utility.getLineData());
                 mChart.setDescription("");
                 mChart.invalidate(); // refresh
             }
         }
 
-        private void getTodaysPrice(String stockJsonStr) {
-            final String COL_NAMES = "column_names";
-            final String DATA = "data";
-            final String NAME = "name";
-            try {
-                JSONObject stockJson = new JSONObject(stockJsonStr);
-                JSONArray names = stockJson.getJSONArray(COL_NAMES);
-                JSONArray data = stockJson.getJSONArray(DATA).getJSONArray(0);
-                name = stockJson.getString(NAME);
-                name = name.substring(0, name.indexOf(")") + 1);
-                date = data.getString(0);
-                price = data.getDouble(1);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "JSON Error!");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
 
-        private void getDataRange(String stockJsonStr) {
-            final String COL_NAMES = "column_names";
-            final String DATA = "data";
-            ArrayList<Entry> vals = new ArrayList<Entry>();
-            try {
-                JSONObject stockJson = new JSONObject(stockJsonStr);
-                JSONArray names = stockJson.getJSONArray(COL_NAMES);
-                JSONArray data = stockJson.getJSONArray(DATA);
-                ArrayList<String> xVals = new ArrayList<String>();
-                int len = data.length();
-                for (int i = len - 1; i >= 0; i--) {
-                    JSONArray obj = data.getJSONArray(i);
-                    vals.add(new Entry((float) obj.getDouble(1), len - 1 - i));
-//                    xVals.add(String.valueOf(len - i));
-                    xVals.add(obj.getString(0));
-                }
-                LineDataSet dataSet = new LineDataSet(vals, name);
-                dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
-                lineData = new LineData(xVals, dataSet);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "JSON Error!");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 
